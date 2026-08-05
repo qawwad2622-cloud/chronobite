@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChronoBite-3D | مطعم آلة الزمن</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+  *{transition: all 0.8s ease; font-family: 'Tajawal', sans-serif; box-sizing:border-box;}
+  body{margin:0; padding:20px; text-align:center; min-height:100vh;}
+
+  h1{font-size:2.5em; margin-bottom:20px;}
+.timeline{display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-bottom:30px;}
+.year{cursor:pointer; padding:12px 18px; border-radius:25px; border:2px solid #ccc; background:rgba(255,255,255,0.3); font-weight:700;}
+.year.active{background:#ff5722; color:white; border-color:#ff5722; transform:scale(1.15); box-shadow:0 4px 15px rgba(255,87,34,0.4);}
+
+  #menu{display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin:30px 0;}
+.item{cursor:pointer; padding:25px; width:200px; border-radius:20px; background:rgba(255,255,255,0.2); backdrop-filter:blur(10px); font-size:1.2em; font-weight:700;}
+.item:hover{transform:scale(1.1) rotate(-2deg); background:rgba(255,255,255,0.4);}
+
+  #viewer3D{width:90%; max-width:800px; height:500px; margin:20px auto; border:3px dashed rgba(255,255,255,0.5); border-radius:25px; position:relative; background:rgba(0,0,0,0.1);}
+  #infoBox{position:absolute; bottom:15px; left:50%; transform:translateX(-50%); background:#000; color:#fff; padding:12px 20px; border-radius:15px; display:none; font-size:1.1em;}
+
+  /* ثيمات السنوات */
+.theme-1950{background:#e8dfd0; color:#2a2a2a; filter:grayscale(80%); border:12px double #8b4513;}
+.theme-2000{background:linear-gradient(135deg,#00bcd4,#03a9f4); color:white;}
+.theme-2005{background:linear-gradient(135deg,#ff9800,#ffc107); color:#000;}
+.theme-2010{background:linear-gradient(135deg,#3f51b5,#2196f3); color:white;}
+.theme-2015{background:#fafafa; color:#212121;}
+.theme-2020{background:#121212; color:#fff;}
+.theme-2025{background:linear-gradient(135deg,#7b2ff7,#00d4ff); color:white;}
+.theme-2026{background:#000; color:#00ff88; text-shadow:0 0 10px #00ff88;}
+.theme-2050{background:radial-gradient(circle at center,#1a0033,#000); color:#ff00ff;}
+.theme-2100{background:linear-gradient(180deg,#001a33,#000011); color:#aaffff; text-shadow:0 0 5px #aaffff;}
+</style>
+</head>
+<body class="theme-2025">
+
+<h1 id="title">منيو 2025 - المستقبل القريب</h1>
+<audio id="bgMusic" loop></audio>
+
+<div class="timeline">
+  <div class="year" onclick="changeYear(1950)">1950</div><div class="year" onclick="changeYear(2000)">2000</div>
+  <div class="year" onclick="changeYear(2005)">2005</div><div class="year" onclick="changeYear(2010)">2010</div>
+  <div class="year" onclick="changeYear(2015)">2015</div><div class="year" onclick="changeYear(2020)">2020</div>
+  <div class="year active" onclick="changeYear(2025)">2025</div><div class="year" onclick="changeYear(2026)">2026</div>
+  <div class="year" onclick="changeYear(2050)">2050</div><div class="year" onclick="changeYear(2100)">2100</div>
+</div>
+
+<div id="menu">
+  <div class="item" onclick="show3D('burger')">🍔 همبرجر</div>
+  <div class="item" onclick="show3D('pizza')">🍕 بيتزا</div>
+  <div class="item" onclick="show3D('shawarma')">🌯 شاورما</div>
+  <div class="item" onclick="show3D('milkshake')">🥤 ميلك شيك</div>
+</div>
+
+<div id="viewer3D">
+  <p style="padding-top:200px; font-size:1.3em;">اختر صنف لعرضه 3D</p>
+  <div id="infoBox"></div>
+</div>
+
+<script>
+const data = {
+ 1950:{title:"منيو 1950 - العصر الذهبي"},
+  2000:{title:"منيو 2000 - بداية الألفية"},
+ 2005:{title:"منيو 2005 - عصر البرتقالي"},
+ 2010:{title:"منيو 2010 - عصر السوشيال"},
+ 2015:{title:"منيو 2015 - المينيمال الصحي"},
+ 2020:{title:"منيو 2020 - الدارك مود"},
+ 2025:{title:"منيو 2025 - المستقبل القريب"},
+ 2026:{title:"منيو 2026 - سايبر بانك"},
+ 2050:{title:"منيو 2050 - محطة الفضاء"},
+  2100:{title:"منيو 2100 - الهولوجرام"}
+};
+
+function changeYear(year){
+  document.body.className = 'theme-' + year;
+  document.getElementById('title').innerText = data[year].title;
+  document.querySelectorAll('.year').forEach(el=>el.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+let scene, camera, renderer, currentObject;
+function show3D(item){
+  const viewer = document.getElementById('viewer3D');
+  viewer.innerHTML = '<div id="infoBox"></div>';
+
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(75, viewer.clientWidth/viewer.clientHeight, 0.1, 1000);
+  renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+  renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+  viewer.appendChild(renderer.domElement);
+
+  const light = new THREE.DirectionalLight(0xffffff, 1.2);
+  light.position.set(2,2,2); scene.add(light);
+  scene.add(new THREE.AmbientLight(0x404040));
+
+  if(item=='burger') createBurger();
+  if(item=='pizza') createPizza();
+  if(item=='shawarma') createShawarma();
+  if(item=='milkshake') createMilkshake();
+
+  camera.position.z = 3.5;
+  animate();
+}
+
+function createBurger(){
+  const breadMat = new THREE.MeshStandardMaterial({color:0xdeb887});
+  const meatMat = new THREE.MeshStandardMaterial({color:0x8b4513});
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(1,1,0.3,32), breadMat); top.position.y=0.35; top.name="الخبز العلوي";
+  const patty = new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,0.2,32), meatMat); patty.name="قطعة اللحم";
+  const bottom = new THREE.Mesh(new THREE.CylinderGeometry(1,1,0.3,32), breadMat); bottom.position.y=-0.35; bottom.name="الخبز السفلي";
+  currentObject = new THREE.Group(); currentObject.add(top,patty,bottom); scene.add(currentObject);
+  setupClicks({"الخبز العلوي":"مخبوز طازج يوميا مع سمسم", "قطعة اللحم":"100% لحم بقر بلدي مشوي", "الخبز السفلي":"بريوش طري"});
+}
+
+function createPizza(){
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,0.15,32), new THREE.MeshStandardMaterial({color:0xf4a742}));
+  base.name="قاعدة البيتزا"; currentObject=base; scene.add(currentObject);
+  setupClicks({"قاعدة البيتزا":"عجينة ايطالية اصلية مع صلصة طماطم"});
+}
+
+function createShawarma(){
+  const roll = new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.5,2,32), new THREE.MeshStandardMaterial({color:0xd2b48c}));
+  roll.rotation.z=Math.PI/2; roll.name="لفة الشاورما"; currentObject=roll; scene.add(currentObject);
+  setupClicks({"لفة الشاورما":"خبز شراك + لحم مشوي + طحينية"});
+}
+
+function createMilkshake(){
+  const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.4,1.2,32), new THREE.MeshStandardMaterial({color:0xfff8dc, transparent:true, opacity:0.8}));
+  cup.name="كاسة الميلك شيك"; currentObject=cup; scene.add(currentObject);
+  setupClicks({"كاسة الميلك شيك":"فانيليا مدغشقر + حليب طازج"});
+}
+
+function setupClicks(info){
+  renderer.domElement.onclick = ()=>{
+    const infoBox = document.getElementById('infoBox');
+    infoBox.innerText = Object.values(info)[0];
+    infoBox.style.display='block';
+    setTimeout(()=>infoBox.style.display='none',2500);
+  }
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  if(currentObject) currentObject.rotation.y += 0.01;
+  renderer.render(scene, camera);
+}
+</script>
+</body>
+</html>
