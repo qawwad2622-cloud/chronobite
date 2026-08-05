@@ -105,64 +105,26 @@ function show3D(item){
   animate();
 }
 
-function clearObject(){
-  if(currentObject) scene.remove(currentObject);
-}
-
-function setupClicks(info){
-  window.onclick = (e)=>{
-    const raycaster=new THREE.Raycaster();
-    const mouse=new THREE.Vector2((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1);
-    raycaster.setFromCamera(mouse,camera);
-    const intersects=raycaster.intersectObjects(scene.children,true);
-    if(intersects.length>0 && intersects[0].object.name){
-      document.getElementById('info').innerText = "معلومة: " + info[intersects[0].object.name];
-    }
-  }
-}
-
 function createBurger(){
-  clearObject();
-  const mats = {
-    bun: new THREE.MeshStandardMaterial({color:0xD4A76A, roughness:0.4}),
-    lettuce: new THREE.MeshStandardMaterial({color:0x2E8B57}),
-    tomato: new THREE.MeshStandardMaterial({color:0xFF0000}),
-    pickle: new THREE.MeshStandardMaterial({color:0x6B8E23}),
-    cheese: new THREE.MeshStandardMaterial({color:0xFFD700}),
-    patty: new THREE.MeshStandardMaterial({color:0x3D2618, roughness:0.8}),
-    sauce: new THREE.MeshStandardMaterial({color:0x8B0000})
-  };
-  const topBun = new THREE.Mesh(new THREE.SphereGeometry(1,32,16,0,Math.PI*2,0,Math.PI/2), mats.bun); topBun.position.y=1.1; topBun.name="الخبز العلوي";
-  const lettuce = new THREE.Mesh(new THREE.CylinderGeometry(0.95,0.95,0.1,32), mats.lettuce); lettuce.position.y=0.9;
-  const tomato = new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,0.08,32), mats.tomato); tomato.position.y=0.78;
-  const pickles = new THREE.Mesh(new THREE.CylinderGeometry(0.85,0.85,0.05,32), mats.pickle); pickles.position.y=0.68;
-  const cheese = new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,0.05,32), mats.cheese); cheese.position.y=0.5;
-  const patty = new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,0.3,32), mats.patty); patty.position.y=0.3; patty.name="قطعة اللحم";
-  const sauce = new THREE.Mesh(new THREE.CylinderGeometry(0.85,0.85,0.03,32), mats.sauce); sauce.position.y=0.12;
-  const bottomBun = new THREE.Mesh(new THREE.CylinderGeometry(1,1,0.2,32), mats.bun); bottomBun.position.y=0;
-
-  currentObject=new THREE.Group();
-  currentObject.add(topBun,lettuce,tomato,pickles,cheese,patty,sauce,bottomBun);
-  scene.add(currentObject);
-  setupClicks({"الخبز العلوي":"بريوش مع سمسم", "قطعة اللحم":"100% لحم بقر مشوي"});
+  const breadMat = new THREE.MeshStandardMaterial({color:0xdeb887});
+  const meatMat = new THREE.MeshStandardMaterial({color:0x8b4513});
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(1,1,0.3,32), breadMat); top.position.y=0.35; top.name="الخبز العلوي";
+  const patty = new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,0.2,32), meatMat); patty.name="قطعة اللحم";
+  const bottom = new THREE.Mesh(new THREE.CylinderGeometry(1,1,0.3,32), breadMat); bottom.position.y=-0.35; bottom.name="الخبز السفلي";
+  currentObject = new THREE.Group(); currentObject.add(top,patty,bottom); scene.add(currentObject);
+  setupClicks({"الخبز العلوي":"مخبوز طازج يوميا مع سمسم", "قطعة اللحم":"100% لحم بقر بلدي مشوي", "الخبز السفلي":"بريوش طري"});
 }
 
 function createPizza(){
-  clearObject();
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.15,32), new THREE.MeshStandardMaterial({color:0xE0AA3F}));
-  const cheese = new THREE.Mesh(new THREE.CylinderGeometry(1.45,1.45,0.1,32), new THREE.MeshStandardMaterial({color:0xFFF8DC, emissive:0xFFFFE0, emissiveIntensity:0.3})); cheese.position.y=0.12; cheese.name="الجبنة";
-  const pepperoni = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.02,16), new THREE.MeshStandardMaterial({color:0x8B0000})); pepperoni.position.set(0.5,0.18,0.3);
-  currentObject=new THREE.Group(); currentObject.add(base,cheese,pepperoni); scene.add(currentObject);
-  setupClicks({"الجبنة":"موزاريلا بتمط + بيبروني + زيتون"});
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,0.15,32), new THREE.MeshStandardMaterial({color:0xf4a742}));
+  base.name="قاعدة البيتزا"; currentObject=base; scene.add(currentObject);
+  setupClicks({"قاعدة البيتزا":"عجينة ايطالية اصلية مع صلصة طماطم"});
 }
 
 function createShawarma(){
-  clearObject();
-  const bread = new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.45,2,32), new THREE.MeshStandardMaterial({color:0xD2B48C, roughness:0.6})); bread.rotation.z=Math.PI/2; bread.name="لفة الشاورما";
-  const meat = new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.3,1.6,32), new THREE.MeshStandardMaterial({color:0x5C3317})); meat.rotation.z=Math.PI/2;
-  currentObject=new THREE.Group(); currentObject.add(bread,meat); scene.add(currentObject);
-  setupClicks({"لفة الشاورما":"خبز مشوي + لحم شاورما + خضار + طحينية"});
-}
+  const roll = new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.5,2,32), new THREE.MeshStandardMaterial({color:0xd2b48c}));
+  roll.rotation.z=Math.PI/2; roll.name="لفة الشاورما"; currentObject=roll; scene.add(currentObject);
+  setupClicks({"لفة الشاورما":"خبز شراك + لحم مشوي + طحينية"});
 }
 
 function createMilkshake(){
